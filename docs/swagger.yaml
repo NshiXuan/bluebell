@@ -1,0 +1,307 @@
+definitions:
+  controller.ResCode:
+    enum:
+    - 1000
+    - 1001
+    - 1002
+    - 1003
+    - 1004
+    - 1005
+    - 1006
+    - 1007
+    type: integer
+    x-enum-varnames:
+    - CodeSuccess
+    - CodeInvalidParam
+    - CodeUserExist
+    - CodeUserNotExist
+    - CodeInvalidPassword
+    - CodeServerBusy
+    - CodeInvalidToken
+    - CodeNeedLogin
+  controller.RespData:
+    properties:
+      code:
+        $ref: '#/definitions/controller.ResCode'
+      data: {}
+      msg: {}
+    type: object
+  controller.RespPostList:
+    properties:
+      code:
+        allOf:
+        - $ref: '#/definitions/controller.ResCode'
+        description: 业务响应状态码
+      data:
+        description: 数据
+        items:
+          $ref: '#/definitions/models.ApiPostDetail'
+        type: array
+      message:
+        description: 提示信息
+        type: string
+    type: object
+  models.ApiPostDetail:
+    properties:
+      author_id:
+        example: "0"
+        type: string
+      author_name:
+        type: string
+      community:
+        allOf:
+        - $ref: '#/definitions/models.CommunityDetail'
+        description: 嵌入社区信息
+      community_id:
+        type: integer
+      content:
+        type: string
+      create_time:
+        type: string
+      id:
+        example: "0"
+        type: string
+      status:
+        type: integer
+      title:
+        type: string
+      vote_num:
+        type: integer
+    required:
+    - community_id
+    - content
+    - title
+    type: object
+  models.CommunityDetail:
+    properties:
+      create_time:
+        type: string
+      id:
+        type: integer
+      introduction:
+        description: omitempty没有就不展示
+        type: string
+      name:
+        type: string
+    type: object
+  models.ParamLogin:
+    properties:
+      password:
+        description: 密码
+        type: string
+      username:
+        description: 用户名
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8081/api/v1
+info:
+  contact:
+    email: support@swagger.io
+    name: codersx
+    url: http://www.swagger.io/support
+  description: bluebell接口文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: bluebell接口文档
+  version: "1.0"
+paths:
+  /api/v1/community:
+    get:
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 查询所有的社区
+      tags:
+      - 社区
+  /api/v1/post:
+    post:
+      parameters:
+      - description: 用户ID
+        in: query
+        name: authorID
+        type: string
+      - description: 社区ID
+        in: query
+        name: communityID
+        type: string
+      - description: 标题
+        in: query
+        name: title
+        type: string
+      - description: 内容
+        in: query
+        name: content
+        type: string
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 创建贴子
+      tags:
+      - 帖子相关接口
+  /api/v1/post/:id:
+    post:
+      parameters:
+      - description: 贴子ID
+        in: query
+        name: postID
+        type: string
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 通过ID获取贴子详情
+      tags:
+      - 帖子相关接口
+  /api/v1/posts2:
+    post:
+      parameters:
+      - description: 贴子ID
+        in: query
+        name: postID
+        type: string
+      - description: 1赞成 0取消 -1反对
+        in: query
+        name: direction
+        type: string
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 投票
+      tags:
+      - 投票
+  /community/:id:
+    get:
+      parameters:
+      - description: 社区ID
+        in: query
+        name: id
+        type: string
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 根据id查询社区详情
+      tags:
+      - 社区
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 登录
+      parameters:
+      - description: 查询参数
+        in: body
+        name: object
+        schema:
+          $ref: '#/definitions/models.ParamLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.RespData'
+      summary: 登录接口
+      tags:
+      - 用户相关接口
+  /posts:
+    post:
+      parameters:
+      - description: 贴子ID
+        in: query
+        name: postID
+        type: string
+      responses:
+        "200":
+          description: code","message"}
+          schema:
+            type: string
+      summary: 获取贴子列表
+      tags:
+      - 帖子相关接口
+  /posts2:
+    get:
+      consumes:
+      - application/json
+      description: 可按社区按时间或分数排序查询帖子列表接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 社区id
+        in: query
+        name: community_id
+        type: integer
+      - description: 排序依据
+        in: query
+        name: order
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页的数据量
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.RespPostList'
+      security:
+      - ApiKeyAuth: []
+      summary: 根据时间或分数或社区获取贴子列表
+      tags:
+      - 帖子相关接口
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: 注册
+      parameters:
+      - description: 密码
+        in: query
+        name: password
+        required: true
+        type: string
+      - description: 确认密码器
+        in: query
+        name: re_password
+        required: true
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.RespData'
+      security:
+      - ApiKeyAuth: []
+      summary: 注册接口
+      tags:
+      - 用户相关接口
+swagger: "2.0"
